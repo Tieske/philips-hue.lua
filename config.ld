@@ -1,6 +1,6 @@
-project='[repo-name]'
-title='[module-name] docs'
-description='[short-description]'
+project='philips-hue.lua'
+title='philips-hue docs'
+description='Lua module to interact with Philips Hue devices, based on the Copas scheduler.'
 
 format='markdown'
 use_markdown_titles = true

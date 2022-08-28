@@ -1,8 +1,8 @@
-local package_name = "[module-name]"
+local package_name = "philips-hue"
 local package_version = "scm"
 local rockspec_revision = "1"
-local github_account_name = "[github-account-name]"
-local github_repo_name = "[repo-name]"
+local github_account_name = "Tieske"
+local github_repo_name = "philips-hue.lua"
 
 
 package = package_name
@@ -15,9 +15,10 @@ source = {
 }
 
 description = {
-  summary = "[short-description]",
+  summary = "Lua module to interact with Philips Hue devices, based on the Copas scheduler.",
   detailed = [[
-    [short-description]
+    Lua module to interact with Philips Hue devices, based on the Copas scheduler.
+    This module will connect and stream events to enable real-time updates.
   ]],
   license = "MIT",
   homepage = "https://github.com/"..github_account_name.."/"..github_repo_name,
@@ -25,17 +26,21 @@ description = {
 
 dependencies = {
   "lua >= 5.1, < 5.5",
+  "copas >= 4.1, < 5",
+  "luasec",
+  "lua-cjson",
+  "copas-sse",
 }
 
 build = {
   type = "builtin",
 
   modules = {
-    ["[module-name].init"] = "src/[module-name]/init.lua",
+    ["philips-hue.init"] = "src/philips-hue/init.lua",
+    ["philips-hue.log"] = "src/philips-hue/log.lua",
   },
 
   copy_directories = {
-    -- can be accessed by `luarocks [module-name] doc` from the commandline
     "docs",
   },
 }

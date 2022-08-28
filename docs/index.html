@@ -3,7 +3,7 @@
 <html>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
 <head>
-    <title>[module-name] docs</title>
+    <title>philips-hue docs</title>
     <link rel="stylesheet" href="ldoc.css" type="text/css" />
 </head>
 <body>
@@ -24,51 +24,72 @@
 
 <div id="navigation">
 <br/>
-<h1>[repo-name]</h1>
+<h1>philips-hue.lua</h1>
 
 
 <h2>Contents</h2>
 <ul>
 <li><a href="#Functions">Functions</a></li>
+<li><a href="#Tables">Tables</a></li>
 </ul>
 
 
 <h2>Modules</h2>
 <ul class="nowrap">
-  <li><strong>project</strong></li>
+  <li><strong>philips-hue</strong></li>
 </ul>
 <h2>Topics</h2>
 <ul class="">
   <li><a href="topics/01-introduction.md.html">1. Introduction</a></li>
-  <li><a href="topics/02-advanced.md.html">2. Advanced topic</a></li>
   <li><a href="topics/CHANGELOG.md.html">CHANGELOG</a></li>
   <li><a href="topics/LICENSE.html">LICENSE</a></li>
 </ul>
 <h2>Examples</h2>
 <ul class="nowrap">
-  <li><a href="examples/example1.lua.html">example1.lua</a></li>
+  <li><a href="examples/dump.lua.html">dump.lua</a></li>
 </ul>
 
 </div>
 
 <div id="content">
 
-<h1>Module <code>project</code></h1>
-<p>This module does something.</p>
-<p> Explain some basics, or the design.</p>
+<h1>Module <code>philips-hue</code></h1>
+<p>Module to interact with the Philips Hue api.</p>
+<p> This module will connect and stream events to enable real-time updates.</p>
+
+<p> This requires the Copas scheduler.</p>
     <h3>Info:</h3>
     <ul>
-        <li><strong>Copyright</strong>: Copyright (c) [copyright-year]-[copyright-year] [your-name]</li>
+        <li><strong>Copyright</strong>: Copyright (c) 2022-2022 Thijs Schreijer</li>
         <li><strong>License</strong>: MIT, see <a href="topics/LICENSE.html#">LICENSE</a>.</li>
-        <li><strong>Author</strong>: [your-name]</li>
+        <li><strong>Author</strong>: Thijs Schreijer</li>
     </ul>
 
 
 <h2><a href="#Functions">Functions</a></h2>
 <table class="function_list">
 	<tr>
-	<td class="name" nowrap><a href="#do_something">do_something (what[, force=false])</a></td>
-	<td class="summary">Does something.</td>
+	<td class="name" nowrap><a href="#Hue.new">Hue.new (opts)</a></td>
+	<td class="summary">Creates a new Hue client instance.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Hue:request">Hue:request (rel_path[, method="GET"[, headers[, query[, body]]]])</a></td>
+	<td class="summary">Performs a HTTP request on the Hue API.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Hue:start">Hue:start ()</a></td>
+	<td class="summary">Starts the client.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Hue:stop">Hue:stop ()</a></td>
+	<td class="summary">Stops the client.</td>
+	</tr>
+</table>
+<h2><a href="#Tables">Tables</a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#Hue">Hue</a></td>
+	<td class="summary">The module table</td>
 	</tr>
 </table>
 
@@ -80,46 +101,158 @@
 
     <dl class="function">
     <dt>
-    <a name = "do_something"></a>
-    <strong>do_something (what[, force=false])</strong>
+    <a name = "Hue.new"></a>
+    <strong>Hue.new (opts)</strong>
     </dt>
     <dd>
-    Does something.
- It will do what you tell it.
+    Creates a new Hue client instance.
 
 
     <h3>Parameters:</h3>
     <ul>
-        <li><span class="parameter">what</span>
-            <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a> or <span class="type">function</span></span>
-         the thing that has to be done
+        <li><span class="parameter">opts</span> options table supporting the following fields:
+        <ul>
+        <li><span class="parameter">apikey</span>
+            <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
+         The api-key to use for access (previously Hue called this 'username')
         </li>
-        <li><span class="parameter">force</span>
-            <span class="types"><span class="type">boolean</span></span>
-         set to a truthy value to force it.
-         (<em>default</em> false)
+        <li><span class="parameter">address</span>
+            <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
+         IP address of the bridge, if omitted will be discovered
+ automatically (discovery will only work if there is exactly 1 bridge)
+         (<em>optional</em>)
+        </li>
+        <li><span class="parameter">callback</span>
+            <span class="types"><span class="type">function</span></span>
+         callback receiving events
+        </li>
+        <li><span class="parameter">sse_event_timout</span>
+            <span class="types"><span class="type">numer</span> or <span class="type">nil</span></span>
+         timeout (seconds idle) for reconnecting to SSE stream. Default
+ 90 seconds; Home Assistant assures events every 60 seconds)
+        </li>
+        <li><span class="parameter">log</span>
+            <span class="types"><span class="type">logger</span></span>
+         LuaLogging compatible logger, defaults to the one on the
+ module table if omitted.
+         (<em>optional</em>)
+        </li>
+        </li></ul>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+        Hue client object
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "Hue:request"></a>
+    <strong>Hue:request (rel_path[, method="GET"[, headers[, query[, body]]]])</strong>
+    </dt>
+    <dd>
+    Performs a HTTP request on the Hue API.
+ NOTE: if the response_body is json, then it will be decoded and returned as
+ a Lua table.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">rel_path</span>
+            <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
+         the relative path within the API base path (starts with '/')
+        </li>
+        <li><span class="parameter">method</span>
+            <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
+         HTTP method to use
+         (<em>default</em> "GET")
+        </li>
+        <li><span class="parameter">headers</span>
+            <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.5">table</a></span>
+         header table
+         (<em>optional</em>)
+        </li>
+        <li><span class="parameter">query</span>
+            <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.5">table</a></span>
+         query parameters (will be escaped)
+         (<em>optional</em>)
+        </li>
+        <li><span class="parameter">body</span>
+            <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.5">table</a> or <a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
+         if set the "Content-Length" will be
+ added to the headers. If a table, it will be send as JSON, and the
+ "Content-Type" header will be set to "application/json".
+         (<em>optional</em>)
         </li>
     </ul>
 
     <h3>Returns:</h3>
     <ol>
-        <li>
-           <span class="types"><span class="type">boolean</span></span>
-        success</li>
-        <li>
-           <span class="types"><span class="type">nil</span> or <a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
-        error message on failure</li>
+
+        <code>ok</code>, <code>response_body</code>, <code>response_code</code>, <code>response_headers</code>, <code>response_status_line</code>
     </ol>
 
 
 
-    <h3>Usage:</h3>
+
+</dd>
+    <dt>
+    <a name = "Hue:start"></a>
+    <strong>Hue:start ()</strong>
+    </dt>
+    <dd>
+    Starts the client.
+ Collects resource data and starts listening to the eventstream for updates.
+
+
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "Hue:stop"></a>
+    <strong>Hue:stop ()</strong>
+    </dt>
+    <dd>
+    Stops the client.
+ Closes the open connections.
+
+
+
+
+
+
+
+</dd>
+</dl>
+    <h2 class="section-header "><a name="Tables"></a>Tables</h2>
+
+    <dl class="function">
+    <dt>
+    <a name = "Hue"></a>
+    <strong>Hue</strong>
+    </dt>
+    <dd>
+    The module table
+
+
+    <h3>Fields:</h3>
     <ul>
-        <pre class="example"><span class="keyword">local</span> success, err = project.do_something(<span class="string">"tell a lie"</span>, <span class="keyword">true</span>)
-<span class="keyword">if</span> <span class="keyword">not</span> success <span class="keyword">then</span>
-    <span class="global">print</span>(<span class="string">"failed at lying; "</span>, err)
-<span class="keyword">end</span></pre>
+        <li><span class="parameter">log</span>
+         Logger is set on the module table, to be able to override it.
+ Default is the LuaLogging default logger (if loaded), or a no-op function.
+        </li>
     </ul>
+
+
+
+
 
 </dd>
 </dl>
@@ -129,7 +262,7 @@
 </div> <!-- id="main" -->
 <div id="about">
 <i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.6</a></i>
-<i style="float:right;">Last updated 2022-08-21 13:16:42 </i>
+<i style="float:right;">Last updated 2022-09-04 20:32:25 </i>
 </div> <!-- id="about" -->
 </div> <!-- id="container" -->
 </body>
