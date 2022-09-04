@@ -29,6 +29,36 @@ Hue._DESCRIPTION = "Lua module to interact with Philips Hue devices, based on th
 Hue.__index = Hue
 Hue.log = require "philips-hue.log"
 
+--- Current connection state (read-only). See `Hue.states`.
+-- @field Hue.state
+
+
+--- Constants to match `hue.state` (read-only). Eg. `if hue.state ==
+-- Hue.states.CONNECTING then ...`.
+-- Values are; `INITIALIZING`, `CONNECTING`, `OPEN`, `CLOSED`.
+-- @field Hue.states
+Hue.states = setmetatable({
+  INITIALIZING = "initializing",
+  CONNECTING = "connecting",
+  OPEN = "open",
+  CLOSED = "closed",
+}, {
+  __index = function(self, key)
+    error("'"..tostring(key).."' is not a valid state, use 'INITIALIZING', 'CONNECTING', 'OPEN', or 'CLOSED'", 2)
+  end,
+})
+
+
+local function set_state(self, new_state)
+  if self.state == new_state then return end
+  self.state = new_state
+  self:callback {
+    client = self,
+    type = "status",
+    event = self.state,
+  }
+end
+
 
 local function deepcopy(t)
   -- TODO: poor man's copying
@@ -316,6 +346,7 @@ end
 
 local function raise_hue_event(self, event, current, received)
   self:callback {
+    client = self,
     type = "hue",
     event = event,
     current = current,
@@ -492,8 +523,10 @@ local function eventstream_handler(self, msg)
     -- event stream connecivity updates
     if msg.data == "connecting" then
       self.log:debug("[hue] evenstream connection state: '%s'", msg.data)
+      set_state(self, Hue.states.CONNECTING)
     elseif msg.data == "open" then
       self.log:debug("[hue] evenstream connection state: '%s'", msg.data)
+      set_state(self, Hue.states.OPEN)
     elseif msg.data == "closed" then
       self.log:debug("[hue] evenstream connection state: '%s'", msg.data)
     else
@@ -552,6 +585,7 @@ function Hue.new(opts)
     address = opts.address,
     callback = assert(type(opts.callback) == "function" and opts.callback, "expected option 'callback' to be a function"),
     sse_event_timeout = opts.sse_event_timeout or 90,
+    state = Hue.states.CLOSED, -- set directly to not emnit event
   }
 
   return setmetatable(self, Hue)
@@ -560,11 +594,15 @@ end
 
 
 --- Starts the client.
--- Collects resource data and starts listening to the eventstream for updates.
+-- Collects resource data and starts listening to the event-stream for updates.
 function Hue:start()
+  assert(self.state == Hue.states.CLOSED, "client already started")
+
   self.address = self.address or assert(discover_bridge(self))
   self.base_url = "https://" .. self.address .. "/clip/v2"
   self.stream_url = "https://" .. self.address .. "/eventstream/clip/v2"
+
+  set_state(self, Hue.states.INITIALIZING)
 
   self.sse_client = assert(sse.new {
     url = self.stream_url,
@@ -584,6 +622,8 @@ function Hue:start()
 
   parse_initial_resources(self, resources)
 
+  set_state(self, Hue.states.CONNECTING)
+
   -- start handling event stream
   self.queue:add_worker(function(msg)
     return eventstream_handler(self, msg)
@@ -602,6 +642,7 @@ function Hue:stop()
     self.sse_client = nil
   end
   self.queue = nil
+  set_state(self, Hue.states.CLOSED)
   return true
 end
 

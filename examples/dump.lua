@@ -15,6 +15,9 @@ local hue = Hue.new {
     if event.event == "update" then
       -- print("Event received: ", require("pl.pretty").write(event.received))
     end
+    if event.type == "status" then
+      -- print("------------------ Event received: ", event.event)
+    end
   end,
 }
 

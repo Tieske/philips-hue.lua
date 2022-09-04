@@ -1,20 +1,20 @@
 # 1. Introduction
 
-This software bridge to the Hue system will connect and synchronise data with the Hue system.
+This client to the Hue system will connect and synchronise data with the Hue system.
 This will be done in a 2 step process:
 
 1. Connect to the Hue event stream
 2. Load all resources available on the Hue bridge (to create an initial state)
 3. Start processing the events from the event stream, to keep the state up to date
 
-The Hue software bridge will also emit events based on changes in either Hue resources, or
-the (connection) state of the software bridge itself.
+The client will also emit events based on changes in either Hue resources, or
+the (connection) state of the client itself.
 
 For the flow of events check the `"status"` events section below.
 
 ## 1.1 Hue resource state
 
-The bridg eobject will have 2 main keys for accessing Hue resources;
+The client will have 2 main keys for accessing Hue resources;
 
 1. `"resources"` which is a table of all resources indexed by their UUID.
 2. `"types"` which has subtable by resource type. Eg. `"light"`, `"scene"`, or `"grouped_light"`. Each of those sub-tables is indexed by the UUID again, and contains only the resources of that specific type.
@@ -41,7 +41,7 @@ An event is a table containing data. The main field in this `event` is the `type
 
 ## 1.3 `"status"` events
 
-The state is refelcted in the `hue.state` field. A state change will be followed by a `"status"` type event.
+The state is reflected in the `hue.state` field. A state change will be followed by a `"status"` type event.
 
 The status events will happen according to the following flow;
 
@@ -56,8 +56,9 @@ a number of `"add"` events (type `"hue"`) will happen as the data comes in.
 The event-object will look like this:
 ```lua
   event = {
+    client = self,          -- the hue client object
     type = "status",
-    event = "initializing", -- initializing, connecting, open, closed
+    event = "initializing", -- one of: initializing, connecting, open, or closed
   }
 ```
 
@@ -66,9 +67,10 @@ The event-object will look like this:
 
 There are three events (in the `event` field of the event-object)
 
-1. `"add"` a resource was added. The resource will be added to the state in the `hue` object, before the event fires. The event-object will look like this:
+1. `"add"` a resource was added. The resource will be added to the state in the client before the event fires. The event-object will look like this:
 ```lua
   event = {
+    client = self,
     type = "hue",
     event = "add",
     current = dereferenced_resource_as_kept_in_state_tables,
@@ -76,9 +78,10 @@ There are three events (in the `event` field of the event-object)
   }
 ```
 
-2. `"update"` a resource was updated. The resource will be updated in the state of the `hue` object, before the event fires. The event will look like this:
+2. `"update"` a resource was updated. The resource will be updated in the state in the client before the event fires. The event will look like this:
 ```lua
   event = {
+    client = self,
     type = "hue",
     event = "update",
     current = dereferenced_resource_as_kept_in_state_tables,
@@ -86,9 +89,10 @@ There are three events (in the `event` field of the event-object)
   }
 ```
 
-3. `"delete"` a resource was deleted. The resource will be removed from the global state of the `hue` object before the event fires. The veent will look like this:
+3. `"delete"` a resource was deleted. The resource will be removed from the state in the client before the event fires. The event will look like this:
 ```lua
   event = {
+    client = self,
     type = "hue",
     event = "delete",
     current = dereferenced_resource_removed_from_state_tables,
