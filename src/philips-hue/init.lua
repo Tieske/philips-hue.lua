@@ -434,6 +434,10 @@ local hue_update_resources do
             self.log:error("[hue] updating a resource: a non-table changed to a table, key: '%s'", key)
           else
             update_resource_table(self, existing[key], value, trace .. "." .. tostring(key))  -- recurse sub table
+            if not next(value) then
+              -- table returned empty, so drop it
+              new[key] = nil
+            end
           end
         end
       end
