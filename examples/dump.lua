@@ -11,23 +11,29 @@ local Timer = require "copas.timer"
 local hue = Hue.new {
   apikey = os.getenv("HUE_KEY"),
   address = os.getenv("HUE_IP"),
-  callback = function(hue, event)
-    if event.event == "update" then
-      -- print("Event received: ", require("pl.pretty").write(event.received))
-    end
-    if event.type == "status" then
-      -- print("------------------ Event received: ", event.event)
+  callback = function(hue, event_data)
+    if event_data.type == "status" then
+      -- Hue client status changed
+      print("------------------ Hue client status is now: ", event_data.event)
+
+    elseif event_data.type == "hue" then
+      -- resources changed/added/deleted
+      if event_data.event == "update" then
+        print("Changes received for resource "..event_data.current.id..": ", require("pl.pretty").write(event_data.received))
+      end
+
+    else
+      -- this should not happen
+      print("Received an unknown event type, expected either 'hue' or 'status', got: "..tostring(event_data.type))
     end
   end,
 }
 
-copas.loop(function()
-  hue:start()
+copas(function()
+  hue:start()  -- start the Hue client
 
-  Timer.new {  -- exit after 120 seconds
-    delay = 120,
+  Timer.new {  -- exit after 5 minutes
+    delay = 5 * 60,
     callback = function() hue:stop() end
   }
 end)
-
---print("title: ", require("pl.pretty").write(resources))

@@ -1,5 +1,6 @@
 --- Module to interact with the Philips Hue api.
 -- This module will connect and stream events to enable real-time updates.
+-- See [dealing with events and state](./topics/01-introduction.md.html).
 --
 -- This requires the Copas scheduler.
 --
@@ -15,26 +16,26 @@ local sse = require "copas-sse.client"
 local http = require "copas.http"
 local Lock = require("copas.lock")
 
---- The module table
--- @table Hue
---
--- @field log
--- Logger is set on the module table, to be able to override it.
--- Default is the LuaLogging default logger (if loaded), or a no-op function.
 
 local Hue = {}
 Hue._VERSION = "0.0.1"
 Hue._COPYRIGHT = "Copyright (c) 2022-2022 Thijs Schreijer"
 Hue._DESCRIPTION = "Lua module to interact with Philips Hue devices, based on the Copas scheduler."
 Hue.__index = Hue
+
+--- Logger is set on the module table, to be able to override it.
+-- Default is the LuaLogging default logger (if loaded), or a no-op function.
+-- Per client overrides can be given in `Hue.new`.
+-- @field Hue.log
 Hue.log = require "philips-hue.log"
 
---- Current connection state (read-only). See `Hue.states`.
+
+--- Current connection state of the client (read-only). See `Hue.states`.
 -- @field Hue.state
 
 
---- Constants to match `hue.state` (read-only). Eg. `if hue.state ==
--- Hue.states.CONNECTING then ...`.
+--- Constants to match `hue.state` (read-only). Eg:
+-- <br/><br/>`if hue.state == Hue.states.CONNECTING then ...`<br/><br/>
 -- Values are; `INITIALIZING`, `CONNECTING`, `OPEN`, `CLOSED`.
 -- @field Hue.states
 Hue.states = setmetatable({
@@ -209,7 +210,8 @@ end
 
 
 --- Performs a HTTP request on the Hue API.
--- NOTE: if the response_body is json, then it will be decoded and returned as
+-- Low level method to interact with the Hue bridge.
+-- <br/>NOTE: if the `response_body` is json, then it will be decoded and returned as
 -- a Lua table.
 -- @tparam string rel_path the relative path within the API base path (starts with '/')
 -- @tparam[opt="GET"] string method HTTP method to use

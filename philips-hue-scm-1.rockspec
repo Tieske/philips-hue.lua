@@ -26,7 +26,7 @@ description = {
 
 dependencies = {
   "lua >= 5.1, < 5.5",
-  "copas >= 4.1, < 5",
+  "copas >= 4.2, < 5",
   "luasec",
   "lua-cjson",
   "copas-sse",
